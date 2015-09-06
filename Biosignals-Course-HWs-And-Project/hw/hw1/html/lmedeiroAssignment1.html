@@ -1,0 +1,474 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>lmedeiroAssignment1</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-09-11"><meta name="DC.source" content="lmedeiroAssignment1.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Assignment 1 - Biosignals Processing;</a></li><li><a href="#2">Plot, var and std of TH.</a></li><li><a href="#3">Question 2;</a></li><li><a href="#4">Now we will employ the previous worked algorithm in vector xx;</a></li><li><a href="#5">Computing the Correlation Coefficient;</a></li><li><a href="#6">Now, on to be more specific with one epoch</a></li></ul></div><h2>Assignment 1 - Biosignals Processing;<a name="1"></a></h2><pre> Luiz Medeiros</pre><pre class="codeinput">clear; clc; close <span class="string">all</span>;
+
+
+close <span class="string">all</span>; clear; clc; <span class="comment">% just doing some house keeping;</span>
+load(<span class="string">'edbe0103'</span>); <span class="comment">% loading the file;</span>
+fc=sig(:,1);    <span class="comment">% setting my own variable to the signal captured in channel 1;</span>
+    <span class="comment">% fc= first channel;</span>
+I=find(fc&gt;1); <span class="comment">% using the find function from matlab to help us find all of</span>
+    <span class="comment">% the item that are above 1, where 1 is our treshold;</span>
+    <span class="comment">%x=zeros(length(I));</span>
+x=ones(1800000,1); <span class="comment">% here we initiate the first dummy var x, which will</span>
+    <span class="comment">% contain all the values on their respective indexes coming from I;</span>
+n=1; <span class="comment">% our main iterative variable</span>
+<span class="keyword">while</span> n&lt;=length(I)
+    x(I(n))=fc(I(n)); <span class="comment">% here we have a the index and value setting.</span>
+    n=n+1;
+<span class="keyword">end</span>
+    <span class="comment">%figure,plot(fc),hold,plot(x,'r*'); % this was mainly for test purposes.</span>
+n=1; <span class="comment">% resetting our iterative variable to keep some consistency.</span>
+mx=[];<span class="comment">% denotes the maxima; first row is the spot, second is the value.</span>
+s=1;v=2; <span class="comment">% (s)pot, (v)alue;</span>
+j=1;    <span class="comment">% our second iterative variable used;</span>
+    <span class="comment">% this loop basically sets up the maxima array so we have maxima and</span>
+    <span class="comment">% positions.</span>
+<span class="keyword">while</span> n&lt;(length(x)-1)
+    diff=x(n+1)/x(n)-1; <span class="comment">% this is the logic we follow to find the where</span>
+    <span class="comment">% the maxima is located. Basically where there occured a change of</span>
+    <span class="comment">% signs from positive to negative.</span>
+
+    <span class="keyword">if</span> diff&lt;0
+       mx(s,j)=n;
+       mx(v,j)=x(n);
+       j=j+1;
+       <span class="comment">%n=n+1;</span>
+       <span class="comment">%diff=x(n+1)/x(n)-1;</span>
+
+       <span class="comment">% below is the iterative logic to get to the next positive position.</span>
+       <span class="keyword">while</span> diff&lt;=0 &amp;&amp; n&lt;(length(x)-1)
+           diff=x(n+1)/x(n)-1;
+           n=n+1;
+       <span class="keyword">end</span>
+    <span class="keyword">else</span>
+        n=n+1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+n=1;
+    <span class="comment">% we now create another dummy matrix to store only the maxima.</span>
+    <span class="comment">% we then plot it against the original first channel samples.</span>
+y=ones(1800000,1);
+<span class="keyword">while</span> n&lt;length(mx)
+    y(mx(s,n))=mx(v,n);
+    n=n+1;
+
+<span class="keyword">end</span>
+figure,
+plot(tm,fc),hold,plot(tm,y,<span class="string">'r*'</span>),xlabel(<span class="string">'Time t (tm)'</span>),
+ylabel(<span class="string">'Recorded Sample values'</span>),title(<span class="string">'Recorded Samples vs Time t'</span>),
+legend(<span class="string">'Sample Values'</span>,<span class="string">'Maxima'</span>); <span class="comment">% our maxima are denoted as red stars.</span>
+
+<span class="comment">% Above is the main algorithm and execution to reach the TH vector</span>
+<span class="comment">% which shall be filled with the maxima.</span>
+</pre><pre class="codeoutput">Current plot held
+</pre><img vspace="5" hspace="5" src="lmedeiroAssignment1_01.png" alt=""> <h2>Plot, var and std of TH.<a name="2"></a></h2><pre class="codeinput">n=1;j=1;
+TH=[];
+<span class="comment">% we will use the maxima (mx) vector that we created earlier with all</span>
+<span class="comment">% the values in their corresponding spots.</span>
+
+<span class="keyword">while</span> n&lt;(length(mx)-1)
+    TH(n)=mx(s,n+1)-mx(s,n);
+    n=n+1;
+
+
+<span class="keyword">end</span>
+figure,
+<span class="comment">% below is the formatted plot in relation to its time domains.</span>
+plot(TH),title(<span class="string">'Plot of TH,the distance between each maxima'</span>),
+xlabel(<span class="string">'Time t'</span>),ylabel(<span class="string">'Distance values of TH'</span>);
+varTH=var(TH);
+stdTH=std(TH);
+meanTH=mean(TH);
+disp(<span class="string">'This is the mean of TH: '</span>),disp(meanTH);
+disp(<span class="string">'This is the variance of TH: '</span>),disp(varTH);
+disp(<span class="string">'This is the standard deviation of TH: '</span>),disp(stdTH);
+</pre><pre class="codeoutput">This is the mean of TH: 
+  243.3544
+
+This is the variance of TH: 
+  930.7230
+
+This is the standard deviation of TH: 
+   30.5078
+
+</pre><img vspace="5" hspace="5" src="lmedeiroAssignment1_02.png" alt=""> <h2>Question 2;<a name="3"></a></h2><pre class="codeinput">clear;close <span class="string">all</span>;clc;
+load(<span class="string">'edbe0103.mat'</span>); <span class="comment">% Here we are again loading everything for the</span>
+<span class="comment">% second set of computations;</span>
+x=sig(:,1);
+x=x-mean(x); <span class="comment">%This smoothes the signal.</span>
+<span class="comment">% We will now output a smother version of the EKG signal;</span>
+figure,
+plot(x),title(<span class="string">'Smoother EKG'</span>),xlabel(<span class="string">'n'</span>),ylabel(<span class="string">'values retrieved'</span>);
+<span class="comment">% below is a series of procedure that demonstrates one presumed period</span>
+<span class="comment">% of our signal.</span>
+n1=222838; n2=223075;
+tx=x(n1:n2);
+ltx=length(tx);
+figure(2)
+subplot(311),plot(tx), title(<span class="string">'A select epoch to be used as a template'</span>)
+<span class="comment">% flipud instruction reverses the matrix for cross checking and</span>
+<span class="comment">% correlation;</span>
+b=flipud(tx); a=1;
+figure(2)
+subplot(312), plot(b), title(<span class="string">'TIme reverse of the template shifter for causality'</span>)
+
+rtx=xcorr(tx);      <span class="comment">%Autocorrelation of the template</span>
+ctx=conv(tx,b);     <span class="comment">%Convolution of the template with its time reverse. The result should be the same as rtx.</span>
+<span class="comment">% subplot(313), plot(-ltx+1:ltx-1,rtx), hold,plot(-ltx+1:ltx-1,ctx,'r'), legend('autocorrealtion', 'convolution')</span>
+<span class="comment">%filter the EKG data with the correlation filter</span>
+<span class="comment">% The above plot is demonstrating the close relationship between the</span>
+<span class="comment">% convolution and autocorelation concepts, as discussed previously.</span>
+
+xx=filter(b,a,x);
+<span class="comment">% figure(1)</span>
+<span class="comment">% subplot(212), plot(xx), title('Correlation filter output')</span>
+</pre><img vspace="5" hspace="5" src="lmedeiroAssignment1_03.png" alt=""> <img vspace="5" hspace="5" src="lmedeiroAssignment1_04.png" alt=""> <h2>Now we will employ the previous worked algorithm in vector xx;<a name="4"></a></h2><pre class="codeinput">fc=xx;    <span class="comment">% setting my own variable to the signal captured in channel 1;</span>
+    <span class="comment">% fc= first channel;</span>
+I=find(fc&gt;1); <span class="comment">% using the find function from matlab to help us find all of</span>
+    <span class="comment">% the item that are above 1, where 1 is our treshold;</span>
+    <span class="comment">%x=zeros(length(I));</span>
+x=ones(1800000,1); <span class="comment">% here we initiate the first dummy var x, which will</span>
+    <span class="comment">% contain all the values on their respective indexes coming from I;</span>
+n=1; <span class="comment">% our main iterative variable</span>
+<span class="keyword">while</span> n&lt;=length(I)
+    x(I(n))=fc(I(n)); <span class="comment">% here we have a the index and value setting.</span>
+    n=n+1;
+<span class="keyword">end</span>
+    <span class="comment">%figure,plot(fc),hold,plot(x,'r*'); % this was mainly for test purposes.</span>
+n=1; <span class="comment">% resetting our iterative variable to keep some consistency.</span>
+mx=[];<span class="comment">% denotes the maxima; first row is the spot, second is the value.</span>
+s=1;v=2; <span class="comment">% (s)pot, (v)alue;</span>
+j=1;    <span class="comment">% our second iterative variable used;</span>
+    <span class="comment">% this loop basically sets up the maxima array so we have maxima and</span>
+    <span class="comment">% positions.</span>
+<span class="keyword">while</span> n&lt;(length(x)-1)
+    diff=x(n+1)/x(n)-1; <span class="comment">% this is the logic we follow to find the where</span>
+    <span class="comment">% the maxima is located. Basically where there occured a change of</span>
+    <span class="comment">% signs from positive to negative.</span>
+
+    <span class="keyword">if</span> diff&lt;0
+       mx(s,j)=n;
+       mx(v,j)=x(n);
+       j=j+1;
+       <span class="comment">%n=n+1;</span>
+       <span class="comment">%diff=x(n+1)/x(n)-1;</span>
+
+       <span class="comment">% below is the iterative logic to get to the next positive position.</span>
+       <span class="keyword">while</span> diff&lt;=0 &amp;&amp; n&lt;(length(x)-1)
+           diff=x(n+1)/x(n)-1;
+           n=n+1;
+       <span class="keyword">end</span>
+    <span class="keyword">else</span>
+        n=n+1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+n=1;
+    <span class="comment">% we now create another dummy matrix to store only the maxima.</span>
+    <span class="comment">% we then plot it against the original first channel samples.</span>
+y=ones(1800000,1);
+<span class="keyword">while</span> n&lt;length(mx)
+    y(mx(s,n))=mx(v,n);
+    n=n+1;
+
+<span class="keyword">end</span>
+figure,
+plot(tm,fc),hold,plot(tm,y,<span class="string">'r*'</span>),xlabel(<span class="string">'Time t (tm)'</span>),
+ylabel(<span class="string">'Recorded Sample values'</span>),title(<span class="string">'Recorded Samples vs Time t'</span>),
+legend(<span class="string">'Sample Values'</span>,<span class="string">'Maxima'</span>); <span class="comment">% our maxima are denoted as red stars.</span>
+
+<span class="comment">% Above is the main algorithm and execution to reach the TH vector</span>
+<span class="comment">% which shall be filled with the maxima.</span>
+</pre><pre class="codeoutput">Current plot held
+</pre><img vspace="5" hspace="5" src="lmedeiroAssignment1_05.png" alt=""> <h2>Computing the Correlation Coefficient;<a name="5"></a></h2><p>According to the research paper, the correlation Coefficient may be defined as follows: Covariance of (Template signal , Test signal)/sqrt(Template signal* Test signal);</p><pre class="codeinput">cf=transpose(fc);
+mfc=mean(fc);
+my=mean(y);
+coVar=cov(fc,y)
+r=sqrt(my*mfc)
+R=coVar./r
+figure,
+plot(fc),
+hold,plot(y,<span class="string">'r*'</span>)
+</pre><pre class="codeoutput">
+coVar =
+
+    9.8007    1.1949
+    1.1949    1.1158
+
+
+r =
+
+    0.0022
+
+
+R =
+
+  1.0e+003 *
+
+    4.4609    0.5439
+    0.5439    0.5079
+
+Current plot held
+</pre><img vspace="5" hspace="5" src="lmedeiroAssignment1_06.png" alt=""> <h2>Now, on to be more specific with one epoch<a name="6"></a></h2><p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+%%  Assignment 1 - Biosignals Processing; 
+%   Luiz Medeiros
+clear; clc; close all; 
+
+
+close all; clear; clc; % just doing some house keeping;
+load('edbe0103'); % loading the file;
+fc=sig(:,1);    % setting my own variable to the signal captured in channel 1;
+    % fc= first channel;
+I=find(fc>1); % using the find function from matlab to help us find all of 
+    % the item that are above 1, where 1 is our treshold;
+    %x=zeros(length(I));
+x=ones(1800000,1); % here we initiate the first dummy var x, which will 
+    % contain all the values on their respective indexes coming from I;
+n=1; % our main iterative variable
+while n<=length(I)
+    x(I(n))=fc(I(n)); % here we have a the index and value setting. 
+    n=n+1;
+end
+    %figure,plot(fc),hold,plot(x,'r*'); % this was mainly for test purposes. 
+n=1; % resetting our iterative variable to keep some consistency. 
+mx=[];% denotes the maxima; first row is the spot, second is the value. 
+s=1;v=2; % (s)pot, (v)alue;
+j=1;    % our second iterative variable used; 
+    % this loop basically sets up the maxima array so we have maxima and
+    % positions.
+while n<(length(x)-1)
+    diff=x(n+1)/x(n)-1; % this is the logic we follow to find the where
+    % the maxima is located. Basically where there occured a change of 
+    % signs from positive to negative.  
+    
+    if diff<0
+       mx(s,j)=n;
+       mx(v,j)=x(n);
+       j=j+1;
+       %n=n+1;
+       %diff=x(n+1)/x(n)-1;
+       
+       % below is the iterative logic to get to the next positive position.
+       while diff<=0 && n<(length(x)-1)
+           diff=x(n+1)/x(n)-1;
+           n=n+1;
+       end
+    else
+        n=n+1;
+    end
+end
+n=1;
+    % we now create another dummy matrix to store only the maxima. 
+    % we then plot it against the original first channel samples. 
+y=ones(1800000,1);
+while n<length(mx)
+    y(mx(s,n))=mx(v,n);
+    n=n+1;
+    
+end
+figure,
+plot(tm,fc),hold,plot(tm,y,'r*'),xlabel('Time t (tm)'),
+ylabel('Recorded Sample values'),title('Recorded Samples vs Time t'),
+legend('Sample Values','Maxima'); % our maxima are denoted as red stars. 
+
+% Above is the main algorithm and execution to reach the TH vector 
+% which shall be filled with the maxima. 
+
+%% Plot, var and std of TH. 
+n=1;j=1;
+TH=[];
+% we will use the maxima (mx) vector that we created earlier with all 
+% the values in their corresponding spots. 
+
+while n<(length(mx)-1)
+    TH(n)=mx(s,n+1)-mx(s,n);
+    n=n+1;
+   
+    
+end
+figure,
+% below is the formatted plot in relation to its time domains. 
+plot(TH),title('Plot of TH,the distance between each maxima'),
+xlabel('Time t'),ylabel('Distance values of TH');
+varTH=var(TH);
+stdTH=std(TH);
+meanTH=mean(TH);
+disp('This is the mean of TH: '),disp(meanTH);
+disp('This is the variance of TH: '),disp(varTH);
+disp('This is the standard deviation of TH: '),disp(stdTH);
+
+%% Question 2;
+clear;close all;clc;
+load('edbe0103.mat'); % Here we are again loading everything for the 
+% second set of computations;
+x=sig(:,1);
+x=x-mean(x); %This smoothes the signal. 
+% We will now output a smother version of the EKG signal;
+figure,
+plot(x),title('Smoother EKG'),xlabel('n'),ylabel('values retrieved');
+% below is a series of procedure that demonstrates one presumed period
+% of our signal.
+n1=222838; n2=223075;
+tx=x(n1:n2);
+ltx=length(tx);
+figure(2)
+subplot(311),plot(tx), title('A select epoch to be used as a template') 
+% flipud instruction reverses the matrix for cross checking and
+% correlation;
+b=flipud(tx); a=1;
+figure(2)
+subplot(312), plot(b), title('TIme reverse of the template shifter for causality')
+
+rtx=xcorr(tx);      %Autocorrelation of the template
+ctx=conv(tx,b);     %Convolution of the template with its time reverse. The result should be the same as rtx.
+% subplot(313), plot(-ltx+1:ltx-1,rtx), hold,plot(-ltx+1:ltx-1,ctx,'r'), legend('autocorrealtion', 'convolution')
+%filter the EKG data with the correlation filter
+% The above plot is demonstrating the close relationship between the 
+% convolution and autocorelation concepts, as discussed previously.
+
+xx=filter(b,a,x);
+% figure(1)
+% subplot(212), plot(xx), title('Correlation filter output') 
+%% Now we will employ the previous worked algorithm in vector xx;
+fc=xx;    % setting my own variable to the signal captured in channel 1;
+    % fc= first channel;
+I=find(fc>1); % using the find function from matlab to help us find all of 
+    % the item that are above 1, where 1 is our treshold;
+    %x=zeros(length(I));
+x=ones(1800000,1); % here we initiate the first dummy var x, which will 
+    % contain all the values on their respective indexes coming from I;
+n=1; % our main iterative variable
+while n<=length(I)
+    x(I(n))=fc(I(n)); % here we have a the index and value setting. 
+    n=n+1;
+end
+    %figure,plot(fc),hold,plot(x,'r*'); % this was mainly for test purposes. 
+n=1; % resetting our iterative variable to keep some consistency. 
+mx=[];% denotes the maxima; first row is the spot, second is the value. 
+s=1;v=2; % (s)pot, (v)alue;
+j=1;    % our second iterative variable used; 
+    % this loop basically sets up the maxima array so we have maxima and
+    % positions.
+while n<(length(x)-1)
+    diff=x(n+1)/x(n)-1; % this is the logic we follow to find the where
+    % the maxima is located. Basically where there occured a change of 
+    % signs from positive to negative.  
+    
+    if diff<0
+       mx(s,j)=n;
+       mx(v,j)=x(n);
+       j=j+1;
+       %n=n+1;
+       %diff=x(n+1)/x(n)-1;
+       
+       % below is the iterative logic to get to the next positive position.
+       while diff<=0 && n<(length(x)-1)
+           diff=x(n+1)/x(n)-1;
+           n=n+1;
+       end
+    else
+        n=n+1;
+    end
+end
+n=1;
+    % we now create another dummy matrix to store only the maxima. 
+    % we then plot it against the original first channel samples. 
+y=ones(1800000,1);
+while n<length(mx)
+    y(mx(s,n))=mx(v,n);
+    n=n+1;
+    
+end
+figure,
+plot(tm,fc),hold,plot(tm,y,'r*'),xlabel('Time t (tm)'),
+ylabel('Recorded Sample values'),title('Recorded Samples vs Time t'),
+legend('Sample Values','Maxima'); % our maxima are denoted as red stars. 
+
+% Above is the main algorithm and execution to reach the TH vector 
+% which shall be filled with the maxima. 
+%% Computing the Correlation Coefficient; 
+% According to the research paper, the correlation Coefficient may be 
+% defined as follows: 
+% Covariance of (Template signal , Test signal)/sqrt(Template signal* Test
+% signal);
+cf=transpose(fc);
+mfc=mean(fc);
+my=mean(y);
+coVar=cov(fc,y)
+r=sqrt(my*mfc)
+R=coVar./r
+figure,
+plot(fc),
+hold,plot(y,'r*')
+%% Now, on to be more specific with one epoch
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
